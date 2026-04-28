@@ -136,7 +136,8 @@ export class Timer extends Clock {
 
     if (scope.current) scope.current.register(this);
 
-    const timerInitTime = parent ? 0 : engine._lastTickTime;
+    const currentTime = now();
+    const timerInitTime = parent ? 0 : currentTime;
     const timerDefaults = parent ? parent.defaults : globals.defaults;
     const timerDelay = /** @type {Number} */(isFnc(delay) || isUnd(delay) ? timerDefaults.delay : +delay);
     const timerDuration = isFnc(duration) || isUnd(duration) ? Infinity : +duration;
@@ -164,9 +165,11 @@ export class Timer extends Clock {
     } else {
       // Make sure to tick the engine once if not currently running to get up to date engine._lastTickTime
       // to avoid big gaps with the following offsetPosition calculation
-      if (!engine.reqId) engine.requestTick(now());
+      if (!engine.reqId) engine.requestTick(currentTime);
       // Make sure to scale the offset position with globals.timeScale to properly handle seconds unit
-      offsetPosition = (engine._lastTickTime - engine._startTime) * globals.timeScale;
+      // Use currentTime instead of engine._lastTickTime to ensure new animations use current time
+      // even when the engine is already running (fixes concurrent animation progress inheritance)
+      offsetPosition = (currentTime - engine._startTime) * globals.timeScale;
     }
 
     // Timer's parameters
@@ -370,6 +373,9 @@ export class Timer extends Clock {
   /** @return {this} */
   pause() {
     if (this.paused) return this;
+    const engineSpeed = engine._speed;
+    const elapsed = (now() - this._startTime) * this._speed * engineSpeed;
+    this._currentTime = elapsed - this._delay;
     this.paused = true;
     this.onPause(this);
     return this;
