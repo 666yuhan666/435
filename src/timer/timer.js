@@ -379,7 +379,6 @@ export class Timer extends Clock {
   resume() {
     if (!this.paused) return this;
     this.paused = false;
-    // We can safely imediatly render a timer that has no duration and no children
     if (this.duration <= minValue && !this._hasChildren) {
       tick(this, minValue, 0, 0, tickModes.FORCE);
     } else {
@@ -389,8 +388,6 @@ export class Timer extends Clock {
         this._running = true;
       }
       this.resetTime();
-      // Forces the timer to advance by at least one frame when the next tick occurs
-      this._startTime -= 12;
       engine.wake();
     }
     return this;
