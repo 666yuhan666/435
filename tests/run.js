@@ -27,6 +27,7 @@ import './suites/values.test.js';
 import './suites/colors.test.js';
 import './suites/eases.test.js';
 import './suites/leaks.test.js';
+import './suites/stability.test.js';
 
 mocha.checkLeaks();
 mocha.run();
